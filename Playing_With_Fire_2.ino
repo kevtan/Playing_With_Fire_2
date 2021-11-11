@@ -2,6 +2,7 @@
 // TODO: Have a game startup sequence to introduce the game
 // TODO: Have a game startup menu to select whether you are playing single player or double player.
 // TODO: Give players "health" by dimming the player LED each time they get hit.
+// Testing - dylan
 
 #define N 8   // The dimensions of the LED array are N x N.
 #define T 50  // How long (in µs) each row of the LED array is lit every cycle.
