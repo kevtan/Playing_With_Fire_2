@@ -11,6 +11,10 @@
 #define BOMB_INTERVAL 100  // How many frames a bomb will stay on or off.
 #define BOMB_BLAST_LIFE 500 // How many frames a bomb's plast animation will play.
 
+#define VRX A5
+#define VRY A4
+#define SW 1
+
 const byte ROWS[N] = {13, 12, 11, 10, 9, 8, 7, 6};
 const byte COLS[N] = {A3, A2, A1, A0, 5, 4, 3, 2};
 
@@ -133,46 +137,59 @@ bool player_position_valid(const byte player, const byte r, const byte c) {
 }
 
 void loop() {
-  if (Serial.available()) {
-    byte command = Serial.read();
-    if (command == 'w' && player_position_valid(1, r1 - 1, c1)) {
-      // Player 1 moves up.
-      r1 -= 1;
-    } else if (command == 'a' && player_position_valid(1, r1, c1 - 1)) {
-      // Player 1 moves left.
-      c1 -= 1;
-    } else if (command == 's' && player_position_valid(1, r1 + 1, c1)) {
-      // Player 1 moves down.
-      r1 += 1;
-    } else if (command == 'd' && player_position_valid(1, r1, c1 + 1)) {
-      // Player 1 moves right.
-      c1 += 1;
-    } else if (command == 'g') {
-      // Player 1 drops a bomb.
-      ttl1 = BOMB_LIFE;
-      bbl1 = BOMB_BLAST_LIFE;
-      br1 = r1;
-      bc1 = c1;
-    } else if (command == 'i' && player_position_valid(2, r2 - 1, c2)) {
-      // Player 2 moves up.
-      r2 -= 1;
-    } else if (command == 'j' && player_position_valid(2, r2, c2 - 1)) {
-      // Player 2 moves left.
-      c2 -= 1;
-    } else if (command == 'k' && player_position_valid(2, r2, c2)) {
-      // Player 2 moves down.
-      r2 += 1;
-    } else if (command == 'l' && player_position_valid(3, r2, c2 + 1)) {
-      // Player 2 moves right.
-      c2 += 1;
-    } else if (command == 'n') {
-      // Player 2 drops a bomb.
-      ttl2 = BOMB_LIFE;
-      bbl2 = BOMB_BLAST_LIFE;
-      br2 = r2;
-      bc2 = c2;
-    }
+  static long next_move_time = millis();
+  if ((long)millis() - next_move_time > 0) {
+    int vry = analogRead(VRY);
+    int vrx = analogRead(VRX);
+    Serial.print("vrx: ");
+    Serial.println(vrx);
+    Serial.print("vry: ");
+    Serial.println(vry);
+//    if (vry < 50) {
+//      r1 -= 1;
+//    } else if (vry > 973) {
+//      r1 += 1;
+//    }
+    next_move_time += 1000;
   }
+//  analogRead(VRY);
+//  if (command == 'w' && player_position_valid(1, r1 - 1, c1)) {
+//    // Player 1 moves up.
+//    r1 -= 1;
+//  } else if (command == 'a' && player_position_valid(1, r1, c1 - 1)) {
+//    // Player 1 moves left.
+//    c1 -= 1;
+//  } else if (command == 's' && player_position_valid(1, r1 + 1, c1)) {
+//    // Player 1 moves down.
+//    r1 += 1;
+//  } else if (command == 'd' && player_position_valid(1, r1, c1 + 1)) {
+//    // Player 1 moves right.
+//    c1 += 1;
+//  } else if (command == 'g') {
+//    // Player 1 drops a bomb.
+//    ttl1 = BOMB_LIFE;
+//    bbl1 = BOMB_BLAST_LIFE;
+//    br1 = r1;
+//    bc1 = c1;
+//  } else if (command == 'i' && player_position_valid(2, r2 - 1, c2)) {
+//    // Player 2 moves up.
+//    r2 -= 1;
+//  } else if (command == 'j' && player_position_valid(2, r2, c2 - 1)) {
+//    // Player 2 moves left.
+//    c2 -= 1;
+//  } else if (command == 'k' && player_position_valid(2, r2, c2)) {
+//    // Player 2 moves down.
+//    r2 += 1;
+//  } else if (command == 'l' && player_position_valid(3, r2, c2 + 1)) {
+//    // Player 2 moves right.
+//    c2 += 1;
+//  } else if (command == 'n') {
+//    // Player 2 drops a bomb.
+//    ttl2 = BOMB_LIFE;
+//    bbl2 = BOMB_BLAST_LIFE;
+//    br2 = r2;
+//    bc2 = c2;
+//  }
   clear_frame_buffer();
   composite_level();
   composite_players();
