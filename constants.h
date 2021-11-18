@@ -1,3 +1,6 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
 #define N 8                 // The dimensions of the LED array are N x N.
 #define T 50                // How long (in µs) each row of the LED array is lit every cycle.
 #define REFRESH_PERIOD 10   // How often the scene should be refreshed (in µs).
@@ -10,3 +13,5 @@
 #define VRX A5
 #define VRY A4
 #define SW 1
+
+#endif

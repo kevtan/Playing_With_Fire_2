@@ -6,17 +6,16 @@
 // Testing - dylan
 #include "math.h"
 #include "actions.h"
-#include "players.h"
+#include "actions.h"
+#include "player.h"
 #include "constants.h"
-#include "directions.h"
 
 const byte ROWS[N] = {13, 12, 11, 10, 9, 8, 7, 6};
 const byte COLS[N] = {A3, A2, A1, A0, 5, 4, 3, 2};
 
 static byte frame_buffer[N][N];
 
-byte human_row, human_col;
-byte computer_row, computer_col;
+Player human, computer;
 
 // Variables describing player's bomb.
 bool exists_player_bomb = false;
@@ -67,8 +66,8 @@ void composite_level()
 
 void composite_players()
 {
-  frame_buffer[human_row][human_col] = 1;
-  frame_buffer[computer_row][computer_col] = 1;
+  frame_buffer[human.position.row][human.position.col] = 1;
+  frame_buffer[computer.position.row][computer.position.col] = 1;
 }
 
 void composite_bombs()
@@ -88,7 +87,7 @@ void clear_frame_buffer()
   }
 }
 
-bool position_legal(Player player, const byte row, const byte col)
+bool position_legal(PlayerType player, const byte row, const byte col)
 {
   // The position is illegal if it's out of bounds.
   if (row >= N or col >= N)
@@ -97,9 +96,9 @@ bool position_legal(Player player, const byte row, const byte col)
   if (row % 2 == 0 and col % 2 == 0)
     return false;
   // The position is illegal if the other player is there.
-  if (player == Player::HUMAN and row == computer_row and col == computer_col)
+  if (player == PlayerType::HUMAN and row == computer.position.row and col == computer.position.col)
     return false;
-  if (player == Player::COMPUTER and row == human_row and col == human_col)
+  if (player == PlayerType::COMPUTER and row == human.position.row and col == human.position.col)
     return false;
   // Check for collision with bombs.
   bool collides_with_bomb_1 = exists_player_bomb ? (row == br1 && col == bc1) : false;
@@ -173,21 +172,21 @@ void print_D()
 void callback_computer_action()
 {
   Action action = static_cast<Action>(random(static_cast<long>(Action::ACTION_END_MARKER)));
-  if (action == Action::MOVE_UP and position_legal(Player::COMPUTER, computer_row - 1, computer_col))
+  if (action == Action::MOVE_UP and position_legal(PlayerType::COMPUTER, computer.position.row - 1, computer.position.col))
   {
-    computer_row--;
+    computer.position.row--;
   }
-  else if (action == Action::MOVE_DOWN and position_legal(Player::COMPUTER, computer_row + 1, computer_col))
+  else if (action == Action::MOVE_DOWN and position_legal(PlayerType::COMPUTER, computer.position.row + 1, computer.position.col))
   {
-    computer_row++;
+    computer.position.row++;
   }
-  else if (action == Action::MOVE_LEFT and position_legal(Player::COMPUTER, computer_row, computer_col - 1))
+  else if (action == Action::MOVE_LEFT and position_legal(PlayerType::COMPUTER, computer.position.row, computer.position.col - 1))
   {
-    computer_col--;
+    computer.position.col--;
   }
-  else if (action == Action::MOVE_RIGHT and position_legal(Player::COMPUTER, computer_row, computer_col + 1))
+  else if (action == Action::MOVE_RIGHT and position_legal(PlayerType::COMPUTER, computer.position.row, computer.position.col + 1))
   {
-    computer_col++;
+    computer.position.col++;
   }
   else if (action == Action::DROP_BOMB)
   {
@@ -195,67 +194,57 @@ void callback_computer_action()
   }
 }
 
+Action determine_human_action()
+{
+  if (digitalRead(SW))
+    return Action::DROP_BOMB;
+  int x = analogRead(VRX) - 512;
+  int y = analogRead(VRY) - 512;
+  double distance = sqrt(square(x) + square(y));
+  if (distance < 256)
+    return Action::STAY;
+  if (y > x and y < -x)
+    return Action::MOVE_DOWN;
+  else if (y < x and y < -x)
+    return Action::MOVE_RIGHT;
+  else if (y < x and y > -x)
+    return Action::MOVE_UP;
+  else
+    return Action::MOVE_RIGHT;
+}
+
 void callback_human_action(long current_time)
 {
-  // Process a user action (i.e. drop bomb or move).
-  bool sw = digitalRead(SW);
-  if (sw == 0)
+  Action action = determine_human_action();
+  if (action == Action::STAY)
+    return;
+  else if (action == Action::DROP_BOMB)
   {
-    // Player action: drop bomb
     if (not exists_player_bomb)
     {
       exists_player_bomb = true;
       player_bomb_explode_time = current_time + 5000;
-      br1 = human_row;
-      bc1 = human_col;
+      br1 = human.position.row;
+      br2 = human.position.col;
     }
   }
   else
   {
-    // Player action: move
-    int y = analogRead(VRY) - 512;
-    int x = analogRead(VRX) - 512;
-    // Determine whether or not we're in the null region.
-    double distance = sqrt(square(y) + square(x));
-    Direction d = Direction::Move;
-    if (distance < NULL_REGION_RADIUS)
-      d = Direction::NoMove;
-    if (d == Direction::Move)
+    if (action == Action::MOVE_LEFT and position_legal(PlayerType::HUMAN, human.position.row, human.position.col - 1))
     {
-      // Determine the movement direction.
-      if (y > x and y < -x)
-      {
-        d = Direction::Down;
-      }
-      else if (y < x and y < -x)
-      {
-        d = Direction::Right;
-      }
-      else if (y < x and y > -x)
-      {
-        d = Direction::Up;
-      }
-      else
-      {
-        d = Direction::Left;
-      }
-      // Move the player.
-      if (d == Direction::Left and position_legal(Player::HUMAN, human_row, human_col - 1))
-      {
-        human_col--;
-      }
-      else if (d == Direction::Right and position_legal(Player::HUMAN, human_row, human_col + 1))
-      {
-        human_col++;
-      }
-      else if (d == Direction::Up and position_legal(Player::HUMAN, human_row + 1, human_col))
-      {
-        human_row++;
-      }
-      else if (d == Direction::Down and position_legal(Player::HUMAN, human_row - 1, human_col))
-      {
-        human_row--;
-      }
+      human.position.col--;
+    }
+    else if (action == Action::MOVE_RIGHT and position_legal(PlayerType::HUMAN, human.position.row, human.position.col + 1))
+    {
+      human.position.col++;
+    }
+    else if (action == Action::MOVE_UP and position_legal(PlayerType::HUMAN, human.position.row + 1, human.position.col))
+    {
+      human.position.row++;
+    }
+    else if (action == Action::MOVE_DOWN and position_legal(PlayerType::HUMAN, human.position.row - 1, human.position.col))
+    {
+      human.position.row--;
     }
   }
 }
@@ -318,9 +307,9 @@ void loop()
         for (int i = 0; i < N; i++)
         {
           frame_buffer[br1][i] = 1;
-          if (br1 == human_row and i == human_col)
+          if (br1 == human.position.row and i == human.position.col)
             player_died = true;
-          if (br1 == computer_row and i == computer_col)
+          if (br1 == computer.position.row and i == computer.position.col)
             computer_died = true;
         }
       }
@@ -328,9 +317,9 @@ void loop()
       {
         for (int i = 0; i < N; i++)
         {
-          if (i == human_row and bc1 == human_col)
+          if (i == human.position.row and bc1 == human.position.col)
             player_died = true;
-          if (i == computer_row and bc1 == computer_col)
+          if (i == computer.position.row and bc1 == computer.position.col)
             computer_died = true;
         }
       }

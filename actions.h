@@ -1,3 +1,6 @@
+#ifndef ACTIONS_H
+#define ACTIONS_H
+
 //!
 //! @brief The different actions a player can take.
 //!
@@ -11,3 +14,5 @@ enum class Action
   DROP_BOMB,
   ACTION_END_MARKER,
 };
+
+#endif
