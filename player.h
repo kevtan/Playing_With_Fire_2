@@ -3,14 +3,16 @@
 
 #include "position.h"
 
-struct Player {
-    Position position;
+struct Player
+{
+  Position position;
 };
 
 //!
 //! @brief Identifies the players in the game.
 //!
-enum class PlayerType {
+enum class PlayerType
+{
   HUMAN,
   COMPUTER,
 };

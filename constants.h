@@ -14,4 +14,7 @@
 #define VRY A4
 #define SW 1
 
+const byte ROWS[N] = {13, 12, 11, 10, 9, 8, 7, 6};
+const byte COLS[N] = {A3, A2, A1, A0, 5, 4, 3, 2};
+
 #endif

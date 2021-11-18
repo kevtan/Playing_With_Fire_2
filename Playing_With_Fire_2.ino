@@ -3,15 +3,13 @@
 // TODO: Have a game startup menu to select whether you are playing single player or double player.
 // TODO: Give players "health" by dimming the player LED each time they get hit.
 // TODO: Create a game state class that encapsulates entire all game state variables.
+// TODO: Give the computer the ability to drop bombs.
 // Testing - dylan
 #include "math.h"
 #include "actions.h"
 #include "actions.h"
 #include "player.h"
 #include "constants.h"
-
-const byte ROWS[N] = {13, 12, 11, 10, 9, 8, 7, 6};
-const byte COLS[N] = {A3, A2, A1, A0, 5, 4, 3, 2};
 
 static byte frame_buffer[N][N];
 
@@ -37,6 +35,7 @@ void setup()
     pinMode(ROWS[i], OUTPUT);
     pinMode(COLS[i], OUTPUT);
   }
+  // Configure pins to interface with the joystick.
   pinMode(SW, INPUT_PULLUP);
   pinMode(VRX, INPUT);
   pinMode(VRY, INPUT);

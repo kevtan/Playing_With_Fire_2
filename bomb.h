@@ -2,7 +2,6 @@
 #define BOMB_H
 
 struct Bomb {
-    bool active;
     byte row;
     byte col;
     long expiration;
