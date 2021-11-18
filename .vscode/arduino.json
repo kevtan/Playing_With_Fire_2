@@ -1,0 +1,5 @@
+{
+    "port": "/dev/cu.usbserial-DJ00S6TX",
+    "board": "arduino:avr:uno",
+    "sketch": "Playing_With_Fire_2.ino"
+}
