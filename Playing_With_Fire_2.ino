@@ -206,10 +206,75 @@ void callback_computer_action()
   }
 }
 
+void callback_human_action(long current_time)
+{
+  // Process a user action (i.e. drop bomb or move).
+  bool sw = digitalRead(SW);
+  if (sw == 0)
+  {
+    // Player action: drop bomb
+    if (not exists_player_bomb)
+    {
+      exists_player_bomb = true;
+      player_bomb_explode_time = current_time + 5000;
+      br1 = human_row;
+      bc1 = human_col;
+    }
+  }
+  else
+  {
+    // Player action: move
+    int y = analogRead(VRY) - 512;
+    int x = analogRead(VRX) - 512;
+    // Determine whether or not we're in the null region.
+    double distance = sqrt(square(y) + square(x));
+    Direction d = Direction::Move;
+    if (distance < NULL_REGION_RADIUS)
+      d = Direction::NoMove;
+    if (d == Direction::Move)
+    {
+      // Determine the movement direction.
+      if (y > x and y < -x)
+      {
+        d = Direction::Down;
+      }
+      else if (y < x and y < -x)
+      {
+        d = Direction::Right;
+      }
+      else if (y < x and y > -x)
+      {
+        d = Direction::Up;
+      }
+      else
+      {
+        d = Direction::Left;
+      }
+      // Move the player.
+      if (d == Direction::Left and position_legal(Player::HUMAN, human_row, human_col - 1))
+      {
+        human_col--;
+      }
+      else if (d == Direction::Right and position_legal(Player::HUMAN, human_row, human_col + 1))
+      {
+        human_col++;
+      }
+      else if (d == Direction::Up and position_legal(Player::HUMAN, human_row + 1, human_col))
+      {
+        human_row++;
+      }
+      else if (d == Direction::Down and position_legal(Player::HUMAN, human_row - 1, human_col))
+      {
+        human_row--;
+      }
+    }
+  }
+}
+
 void loop()
 {
   static long next_computer_action = millis();
-  static long next_action_time = millis();
+  static long next_human_action = millis();
 
   long current_time = millis();
 
@@ -219,73 +284,10 @@ void loop()
     next_computer_action = current_time + ACTION_INTERVAL;
   }
 
-  if (current_time - next_action_time > 0)
+  if (current_time - next_human_action > 0)
   {
-    // Process a user action (i.e. drop bomb or move).
-    bool sw = digitalRead(SW);
-    if (sw == 0)
-    {
-      // Player action: drop bomb
-      if (not exists_player_bomb)
-      {
-        exists_player_bomb = true;
-        player_bomb_explode_time = current_time + 5000;
-        br1 = human_row;
-        bc1 = human_col;
-      }
-      // Update the next action time.
-      next_action_time = current_time + ACTION_INTERVAL;
-    }
-    else
-    {
-      // Player action: move
-      int y = analogRead(VRY) - 512;
-      int x = analogRead(VRX) - 512;
-      // Determine whether or not we're in the null region.
-      double distance = sqrt(square(y) + square(x));
-      Direction d = Direction::Move;
-      if (distance < NULL_REGION_RADIUS)
-        d = Direction::NoMove;
-      if (d == Direction::Move)
-      {
-        // Determine the movement direction.
-        if (y > x and y < -x)
-        {
-          d = Direction::Down;
-        }
-        else if (y < x and y < -x)
-        {
-          d = Direction::Right;
-        }
-        else if (y < x and y > -x)
-        {
-          d = Direction::Up;
-        }
-        else
-        {
-          d = Direction::Left;
-        }
-        // Move the player.
-        if (d == Direction::Left and position_legal(Player::HUMAN, human_row, human_col - 1))
-        {
-          human_col--;
-        }
-        else if (d == Direction::Right and position_legal(Player::HUMAN, human_row, human_col + 1))
-        {
-          human_col++;
-        }
-        else if (d == Direction::Up and position_legal(Player::HUMAN, human_row + 1, human_col))
-        {
-          human_row++;
-        }
-        else if (d == Direction::Down and position_legal(Player::HUMAN, human_row - 1, human_col))
-        {
-          human_row--;
-        }
-      }
-      // Update the next action time.
-      next_action_time = current_time + ACTION_INTERVAL;
-    }
+    callback_human_action(current_time);
+    next_human_action = current_time + ACTION_INTERVAL;
   }
   if (exists_player_bomb)
   {
