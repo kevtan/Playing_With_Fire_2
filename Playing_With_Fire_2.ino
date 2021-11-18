@@ -26,7 +26,7 @@ const byte COLS[N] = {A3, A2, A1, A0, 5, 4, 3, 2};
 
 static byte frame_buffer[N][N];
 
-byte player_row, player_col;
+byte human_row, human_col;
 byte computer_row, computer_col;
 
 // Variables describing player's bomb.
@@ -78,7 +78,7 @@ void composite_level()
 
 void composite_players()
 {
-  frame_buffer[player_row][player_col] = 1;
+  frame_buffer[human_row][human_col] = 1;
   frame_buffer[computer_row][computer_col] = 1;
 }
 
@@ -110,7 +110,7 @@ bool position_legal(Player player, const byte row, const byte col)
   // The position is illegal if the other player is there.
   if (player == Player::HUMAN and row == computer_row and col == computer_col)
     return false;
-  if (player == Player::COMPUTER and row == player_row and col == player_col)
+  if (player == Player::COMPUTER and row == human_row and col == human_col)
     return false;
   // Check for collision with bombs.
   bool collides_with_bomb_1 = exists_player_bomb ? (row == br1 && col == bc1) : false;
@@ -230,8 +230,8 @@ void loop()
       {
         exists_player_bomb = true;
         player_bomb_explode_time = current_time + 5000;
-        br1 = player_row;
-        bc1 = player_col;
+        br1 = human_row;
+        bc1 = human_col;
       }
       // Update the next action time.
       next_action_time = current_time + ACTION_INTERVAL;
@@ -266,21 +266,21 @@ void loop()
           d = Direction::Left;
         }
         // Move the player.
-        if (d == Direction::Left and position_legal(Player::HUMAN, player_row, player_col - 1))
+        if (d == Direction::Left and position_legal(Player::HUMAN, human_row, human_col - 1))
         {
-          player_col--;
+          human_col--;
         }
-        else if (d == Direction::Right and position_legal(Player::HUMAN, player_row, player_col + 1))
+        else if (d == Direction::Right and position_legal(Player::HUMAN, human_row, human_col + 1))
         {
-          player_col++;
+          human_col++;
         }
-        else if (d == Direction::Up and position_legal(Player::HUMAN, player_row + 1, player_col))
+        else if (d == Direction::Up and position_legal(Player::HUMAN, human_row + 1, human_col))
         {
-          player_row++;
+          human_row++;
         }
-        else if (d == Direction::Down and position_legal(Player::HUMAN, player_row - 1, player_col))
+        else if (d == Direction::Down and position_legal(Player::HUMAN, human_row - 1, human_col))
         {
-          player_row--;
+          human_row--;
         }
       }
       // Update the next action time.
@@ -327,7 +327,7 @@ void loop()
         for (int i = 0; i < N; i++)
         {
           frame_buffer[br1][i] = 1;
-          if (br1 == player_row and i == player_col)
+          if (br1 == human_row and i == human_col)
             player_died = true;
           if (br1 == computer_row and i == computer_col)
             computer_died = true;
@@ -337,7 +337,7 @@ void loop()
       {
         for (int i = 0; i < N; i++)
         {
-          if (i == player_row and bc1 == player_col)
+          if (i == human_row and bc1 == human_col)
             player_died = true;
           if (i == computer_row and bc1 == computer_col)
             computer_died = true;
